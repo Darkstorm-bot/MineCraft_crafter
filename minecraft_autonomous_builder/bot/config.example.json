@@ -1,0 +1,11 @@
+{
+  "host": "localhost",
+  "port": 25565,
+  "username": "BuilderBot",
+  "version": "1.20.4",
+  "auth": "offline",
+  "mc_version_for_tlauncher": "1.20.4",
+  "connection_timeout": 30000,
+  "chat_logging": true,
+  "auto_reconnect": true
+}
