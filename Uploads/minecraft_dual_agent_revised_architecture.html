@@ -1,0 +1,324 @@
+
+<h2 class="sr-only">Minecraft autonomous builder — revised dual-agent architecture, gap analysis and MemPalace schema</h2>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.tabs{display:flex;gap:4px;margin-bottom:1.25rem;flex-wrap:wrap}
+.tab{padding:5px 13px;font-size:12px;font-family:var(--font-mono);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary)}
+.tab.active{background:var(--color-background-secondary);color:var(--color-text-primary);font-weight:500}
+.tab:hover:not(.active){background:var(--color-background-secondary)}
+.hidden{display:none}
+.mono{font-family:var(--font-mono)}
+.serif{font-family:var(--font-serif)}
+
+.badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px;display:inline-block;font-family:var(--font-mono)}
+.bd{background:var(--color-background-danger);color:var(--color-text-danger)}
+.bw{background:var(--color-background-warning);color:var(--color-text-warning)}
+.bi{background:var(--color-background-info);color:var(--color-text-info)}
+
+.critical-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.critical-card{padding:13px 14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);background:var(--color-background-danger)}
+.gap-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gap-card{padding:11px 13px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);background:var(--color-background-primary)}
+.gap-title{font-size:12px;font-weight:500;color:var(--color-text-primary);margin:5px 0 3px}
+.gap-desc{font-size:11px;color:var(--color-text-secondary);line-height:1.55}
+.gap-note{font-size:10px;font-family:var(--font-mono);color:var(--color-text-secondary);margin-top:5px;padding:5px 8px;background:var(--color-background-secondary);border-radius:4px;line-height:1.5}
+.root-note{font-size:11px;color:var(--color-text-secondary);line-height:1.5;padding:8px 0 12px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:10px}
+
+.vram-strip{display:flex;align-items:stretch;gap:0;border-radius:var(--border-radius-md);overflow:hidden;margin-bottom:14px;border:0.5px solid var(--color-border-secondary)}
+.vs-seg{padding:9px 10px;flex:1;display:flex;flex-direction:column;gap:2px}
+.vs-a{background:var(--color-background-info);border-right:0.5px solid var(--color-border-secondary)}
+.vs-gap{background:var(--color-background-secondary);flex:0 0 48px;align-items:center;justify-content:center;border-right:0.5px solid var(--color-border-secondary)}
+.vs-b{background:var(--color-background-success);border-right:0.5px solid var(--color-border-secondary)}
+.vs-gate{background:var(--color-background-warning);flex:0 0 72px;align-items:center;justify-content:center}
+.vs-label{font-size:10px;font-family:var(--font-mono);font-weight:500}
+.vs-sub{font-size:10px;color:var(--color-text-secondary)}
+.vs-a .vs-label{color:var(--color-text-info)}
+.vs-b .vs-label{color:var(--color-text-success)}
+.vs-gate .vs-label{color:var(--color-text-warning);text-align:center;font-size:9px}
+.vs-gap .vs-label{color:var(--color-text-tertiary);font-size:9px;text-align:center}
+
+.arch-grid{display:grid;grid-template-columns:1fr 132px 1fr;gap:0}
+.agent-col{display:flex;flex-direction:column;gap:6px}
+.mem-col{display:flex;flex-direction:column;align-items:center;padding-top:28px;gap:3px}
+.step-card{padding:9px 11px;border-radius:var(--border-radius-md);font-size:11px;border:0.5px solid;line-height:1.45}
+.step-title{font-weight:500;font-size:11px;margin-bottom:3px;font-family:var(--font-mono)}
+.step-a{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
+.step-b{background:var(--color-background-success);border-color:var(--color-border-success);color:var(--color-text-success)}
+.step-mem{background:var(--color-background-secondary);border-color:var(--color-border-secondary);font-size:10px;text-align:center;width:100%;border-radius:var(--border-radius-md);border:0.5px solid;padding:8px 7px;font-family:var(--font-mono);color:var(--color-text-secondary);line-height:1.45}
+.step-mem strong{color:var(--color-text-primary);font-weight:500}
+.agent-label{font-size:11px;font-weight:500;text-align:center;margin-bottom:5px;font-family:var(--font-mono)}
+.la{color:var(--color-text-info)}
+.lb{color:var(--color-text-success)}
+.lm{color:var(--color-text-secondary)}
+.arrow-ind{font-size:12px;color:var(--color-text-tertiary);text-align:center;line-height:1}
+.vline{width:1px;flex:0 0 1px;background:var(--color-border-tertiary);margin:0 auto}
+
+.conv-box{margin-top:12px;padding:10px 13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);background:var(--color-background-secondary)}
+.conv-title{font-size:11px;font-weight:500;font-family:var(--font-mono);margin-bottom:7px;color:var(--color-text-primary)}
+.cond-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.cond-item{font-size:11px;color:var(--color-text-secondary);line-height:1.5;padding:8px 9px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary)}
+.cond-label{font-weight:500;font-size:11px;font-family:var(--font-mono);margin-bottom:3px}
+.ca .cond-label{color:var(--color-text-success)}
+.cb .cond-label{color:var(--color-text-warning)}
+.cc .cond-label{color:var(--color-text-info)}
+
+.slabel{font-size:10px;font-weight:500;font-family:var(--font-mono);color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;margin:13px 0 6px;display:flex;align-items:center;gap:6px}
+.slabel::after{content:'';flex:1;height:0.5px;background:var(--color-border-tertiary)}
+.slabel-badge{font-size:9px;padding:1px 6px;border-radius:8px;background:var(--color-background-secondary);color:var(--color-text-tertiary);font-weight:400;letter-spacing:0}
+
+.exec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.exec-card{padding:9px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:11px;background:var(--color-background-primary);line-height:1.45}
+.exec-label{font-weight:500;margin-bottom:4px;font-size:11px;font-family:var(--font-mono);color:var(--color-text-primary)}
+.exec-note{font-size:10px;color:var(--color-text-tertiary);font-family:var(--font-mono);margin-top:5px;padding:4px 7px;border-left:2px solid var(--color-border-secondary);line-height:1.45}
+.reentry-note{margin-top:10px;padding:9px 12px;font-size:11px;color:var(--color-text-secondary);background:var(--color-background-warning);border:0.5px solid var(--color-border-warning);border-radius:var(--border-radius-md);line-height:1.55}
+.reentry-note strong{font-weight:500;color:var(--color-text-warning);font-family:var(--font-mono)}
+
+.schema-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.schema-table{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.schema-hdr{padding:7px 11px;font-size:11px;font-weight:500;border-bottom:0.5px solid var(--color-border-tertiary);font-family:var(--font-mono)}
+.sch-m .schema-hdr{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.sch-a .schema-hdr{background:var(--color-background-info);color:var(--color-text-info);border-bottom-color:var(--color-border-info)}
+.sch-b .schema-hdr{background:var(--color-background-success);color:var(--color-text-success);border-bottom-color:var(--color-border-success)}
+.sch-w .schema-hdr{background:var(--color-background-warning);color:var(--color-text-warning);border-bottom-color:var(--color-border-warning)}
+.sch-d .schema-hdr{background:var(--color-background-danger);color:var(--color-text-danger);border-bottom-color:var(--color-border-danger)}
+.schema-row{display:flex;align-items:center;gap:6px;padding:5px 11px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:11px;font-family:var(--font-mono)}
+.schema-row:last-child{border-bottom:none}
+.sf{color:var(--color-text-secondary);flex:1}
+.st{color:var(--color-text-tertiary);font-size:10px;padding:1px 5px;background:var(--color-background-secondary);border-radius:3px;white-space:nowrap}
+.sc{color:var(--color-text-tertiary);font-size:10px;flex:1.5;line-height:1.4}
+.schema-note{font-size:11px;color:var(--color-text-secondary);line-height:1.55;margin-top:10px;padding:9px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary)}
+.schema-note code{font-family:var(--font-mono);font-size:10px;background:var(--color-background-primary);padding:1px 4px;border-radius:3px;border:0.5px solid var(--color-border-tertiary)}
+</style>
+
+<div style="padding:1rem 0">
+<div class="tabs">
+  <button class="tab active" onclick="show('gaps',this)">Gap analysis</button>
+  <button class="tab" onclick="show('arch',this)">Agent architecture</button>
+  <button class="tab" onclick="show('schema',this)">MemPalace schema</button>
+</div>
+
+<div id="gaps">
+  <div class="root-note">Two root causes drive everything else. Fix these two and the remaining eight either resolve or become tractable. The <span class="mono" style="font-size:10px">// build</span> confusion is listed third because it's a hard stop when writing actual integration code — but it doesn't generate the others.</div>
+
+  <div class="critical-pair">
+    <div class="critical-card">
+      <span class="badge bd">Critical — root cause #1</span>
+      <div class="gap-title">Coordinate collision: no spatial index</div>
+      <div class="gap-desc">The LLM hallucinates coordinates with full confidence. Nothing checks whether those blocks overlap existing structures before they're placed. Every module placement is a gamble unless a real 3D index is queried first.</div>
+      <div class="gap-note">Fix: <span class="mono">coord_index</span> table in SQLite. All module extents are registered before any paste. The accessor runs a bounding-box intersection query on every proposed block range. Reservation is atomic — crash between loads can't leave a partial lock.</div>
+    </div>
+    <div class="critical-card">
+      <span class="badge bd">Critical — root cause #2</span>
+      <div class="gap-title">Single-agent context window saturation</div>
+      <div class="gap-desc">One 19–27b model holds the full project plan, memory state, current blueprint, and correction loop simultaneously. At 19–27b the window is finite — coherence collapses as the project grows. Every other quality problem downstream is amplified by this.</div>
+      <div class="gap-note">Fix: two agents, sequential not parallel. Agent A fully unloads before Agent B loads. State never lives in context — it lives in MemPalace (SQLite on disk). VRAM is never double-occupied.</div>
+    </div>
+  </div>
+
+  <div class="gap-grid">
+    <div class="gap-card">
+      <span class="badge bw">High</span>
+      <div class="gap-title"><span class="mono" style="font-size:11px">//build</span> system confusion</div>
+      <div class="gap-desc">These are completely separate systems. Mixing them in the pipeline design means you'll hit a wall the moment you write actual integration code.</div>
+      <div class="gap-note">Baritone → pathfinding and navigation only<br>WorldEdit / FAWE → schematic pasting only</div>
+    </div>
+    <div class="gap-card">
+      <span class="badge bw">High</span>
+      <div class="gap-title">MemPalace has no actual backend</div>
+      <div class="gap-desc">"Wings and Halls" as a concept is fine but without a real storage layer it's just a metaphor the LLM will hallucinate into. No atomic writes, no spatial queries, no version history.</div>
+      <div class="gap-note">Needs: SQLite + Python accessor class. Agents never touch raw SQL.</div>
+    </div>
+    <div class="gap-card">
+      <span class="badge bw">High</span>
+      <div class="gap-title">No rollback or checkpoint system</div>
+      <div class="gap-desc">If the bot crashes mid-batch or a module places incorrectly, there's no recovery path. Build log entries don't include enough state to resume from a checkpoint.</div>
+      <div class="gap-note">Needs: <span class="mono" style="font-size:10px">checkpoint_state JSON</span> written to <span class="mono" style="font-size:10px">build_log</span> after every batch.</div>
+    </div>
+    <div class="gap-card">
+      <span class="badge bw">High</span>
+      <div class="gap-title">Block ID version mismatch</div>
+      <div class="gap-desc">Block IDs changed fundamentally between 1.12 and 1.13+. A static dictionary breaks across versions without a compatibility shim tied to mc_version.</div>
+      <div class="gap-note">Needs: <span class="mono" style="font-size:10px">mc_version</span> field in <span class="mono" style="font-size:10px">projects</span>. Agent B validates block IDs against this during its structured critique pass.</div>
+    </div>
+    <div class="gap-card">
+      <span class="badge bi">Medium</span>
+      <div class="gap-title">Vision critique is unstructured</div>
+      <div class="gap-desc">Asking LLaVA "is the nosecone pointy?" is too vague for reliable corrections. Produces inconsistent results that can't gate a re-entry decision.</div>
+      <div class="gap-note">Needs: structured diff prompt — expected block counts, symmetry score, numeric 0–100 quality output.</div>
+    </div>
+    <div class="gap-card">
+      <span class="badge bi">Medium</span>
+      <div class="gap-title">No terrain or inventory pre-check</div>
+      <div class="gap-desc">Pipeline assumes flat terrain and infinite materials. No step clears ground, loads chunks around the origin, or validates bot inventory against the material manifest.</div>
+      <div class="gap-note">Needs: preflight phase before any block is placed. Terrain scan + flatten, chunk loading, inventory diff against <span class="mono" style="font-size:10px">material_manifest</span>.</div>
+    </div>
+    <div class="gap-card">
+      <span class="badge bi">Medium</span>
+      <div class="gap-title">No convergence gate</div>
+      <div class="gap-desc">No stopping criterion defined. Without a delta score threshold or max-iteration cap, agents will loop indefinitely refining an already-good blueprint.</div>
+      <div class="gap-note">Needs: delta &lt; 5% = auto-approve; cycle ≥ 3 = pick best from history; <span class="mono" style="font-size:10px">approval_flag</span> = immediate proceed.</div>
+    </div>
+    <div class="gap-card">
+      <span class="badge bi">Medium</span>
+      <div class="gap-title">No scale calibration or unit grounding</div>
+      <div class="gap-desc">The LLM has no reference for how "15×15×20 blocks" looks in-world. Without a block-to-metre table injected into the prompt, proportions will be consistently wrong.</div>
+      <div class="gap-note">Needs: block reference table in the Architect's system prompt. 1 block = 1 m³. Include known landmark dimensions for grounding.</div>
+    </div>
+  </div>
+</div>
+
+<div id="arch" class="hidden">
+  <div class="slabel">VRAM sequencer — agents never load simultaneously</div>
+  <div class="vram-strip">
+    <div class="vs-seg vs-a">
+      <div class="vs-label">A — Architect loaded</div>
+      <div class="vs-sub" style="font-size:10px">reads MemPalace → produces blueprint → writes back</div>
+    </div>
+    <div class="vs-seg vs-gap"><div class="vs-label">A unloads<br>VRAM freed</div></div>
+    <div class="vs-seg vs-b">
+      <div class="vs-label">B — Engineer loaded</div>
+      <div class="vs-sub" style="font-size:10px">reads blueprint → validates → writes critique → unloads</div>
+    </div>
+    <div class="vs-seg vs-gap"><div class="vs-label">B unloads<br>VRAM freed</div></div>
+    <div class="vs-seg vs-gate"><div class="vs-label">convergence<br>gate</div></div>
+  </div>
+
+  <div class="arch-grid">
+    <div class="agent-col">
+      <div class="agent-label la">Agent A — Architect</div>
+      <div class="step-card step-a"><div class="step-title">1. Load with full context</div>Reads project record, all previous critiques, block reference table (1 block = 1 m³), mc_version compatibility list, and coord_index reservation map from MemPalace</div>
+      <div class="arrow-ind">↓</div>
+      <div class="step-card step-a"><div class="step-title">2. Produce blueprint</div>Generates block_data JSON per module. Grounded to mc_version block IDs. Proportions anchored to the block reference table. If a vision critique exists in MemPalace, refines the affected sections only — does not re-plan from scratch</div>
+      <div class="arrow-ind">↓</div>
+      <div class="step-card step-a"><div class="step-title">3. Write back to MemPalace</div>Saves blueprints_v<em>n</em> + material_manifest + proposed coord extents via Python accessor. Accessor runs collision check against coord_index before committing. Increments iteration_count</div>
+      <div class="arrow-ind">↓</div>
+      <div class="step-card step-a" style="opacity:.75"><div class="step-title">4. Unload — free VRAM</div>All state is on disk. Nothing is carried in memory between loads</div>
+    </div>
+
+    <div class="mem-col">
+      <div class="agent-label lm">MemPalace</div>
+      <div class="step-mem"><strong>SQLite on disk</strong><br>atomic writes<br>between loads</div>
+      <div class="vline" style="flex:1;min-height:20px"></div>
+      <div class="step-mem"><strong>coord_index</strong><br>collision check<br>before any write</div>
+      <div class="vline" style="flex:1;min-height:20px"></div>
+      <div class="step-mem"><strong>versioned history</strong><br>blueprints_v1…vN<br>gate picks best</div>
+      <div class="vline" style="flex:1;min-height:20px"></div>
+      <div class="step-mem"><strong>Python accessor</strong><br>agents never<br>touch raw SQL</div>
+    </div>
+
+    <div class="agent-col">
+      <div class="agent-label lb">Agent B — Engineer</div>
+      <div class="step-card step-b"><div class="step-title">1. Load with full context</div>Reads latest blueprints_v<em>n</em>, all previous critiques, iteration_count, mc_version, and material_manifest from MemPalace</div>
+      <div class="arrow-ind">↓</div>
+      <div class="step-card step-b"><div class="step-title">2. Structured validation pass</div>Checks: coord collisions vs spatial index · floating block physics · redstone logic validity · block ID compatibility vs mc_version · symmetry · material totals vs inventory manifest</div>
+      <div class="arrow-ind">↓</div>
+      <div class="step-card step-b"><div class="step-title">3. Write structured critique</div>Saves critique_v<em>n</em> with: delta_score (% of blueprint changed) · line-item issues with priority · approval_flag. If delta_score = 0 and no issues, sets approval_flag = TRUE</div>
+      <div class="arrow-ind">↓</div>
+      <div class="step-card step-b" style="opacity:.75"><div class="step-title">4. Unload — free VRAM</div>Convergence gate reads delta_score and iteration_count before routing. Does not re-load either agent until gate routes to a new cycle</div>
+    </div>
+  </div>
+
+  <div class="conv-box">
+    <div class="conv-title">Convergence gate — runs between every Agent B unload</div>
+    <div class="cond-grid">
+      <div class="cond-item ca"><div class="cond-label">A — delta low</div>delta_score &lt; 5% — blueprint barely changed. Agent B found almost nothing worth altering. Auto-approve and proceed to execution.</div>
+      <div class="cond-item cb"><div class="cond-label">B — max cycles hit</div>iteration_count ≥ 3. Pick the highest-scored blueprint version from MemPalace history. Prevents runaway loops on genuinely contested designs.</div>
+      <div class="cond-item cc"><div class="cond-label">C — explicit approval</div>approval_flag = TRUE. Agent B found zero issues in the validation pass. Proceed immediately without any further load cycle.</div>
+    </div>
+  </div>
+
+  <div class="slabel">Execution layer <span class="slabel-badge">no LLM involved</span></div>
+  <div class="exec-grid">
+    <div class="exec-card">
+      <div class="exec-label">Preflight</div>
+      Terrain scan + flatten around origin. Chunk loading for build radius. Inventory diff against material_manifest. Coord reservation lock written to coord_index for the approved blueprint's full extent.
+      <div class="exec-note">Fails fast if inventory is short or terrain scan finds an obstruction outside the cleared radius</div>
+    </div>
+    <div class="exec-card">
+      <div class="exec-label">Batch builder</div>
+      Approved JSON → <span class="mono" style="font-size:10px">.schem</span> file via <span class="mono" style="font-size:10px">mcschematic</span> → WorldEdit FAWE paste per module. Checkpoint_state JSON written to build_log after each batch. On resume, build_log is read to skip completed batches.
+      <div class="exec-note">WorldEdit FAWE handles paste. Baritone handles navigation between paste origins. These are separate systems and called separately.</div>
+    </div>
+    <div class="exec-card">
+      <div class="exec-label">Vision verify</div>
+      Screenshot per build phase → LLaVA with structured diff prompt: expected block counts per module, bilateral symmetry score, 0–100 quality integer. If score ≥ 80%, mark phase complete.
+      <div class="exec-note">score &lt; 80% → correction context tagged, written to MemPalace as vision_critique</div>
+    </div>
+  </div>
+  <div class="reentry-note">
+    <strong>Re-entry path:</strong> If vision score &lt; 80%, the correction context is written to MemPalace as <span class="mono" style="font-size:10px">vision_critique_v<em>n</em></span> and the agent loop restarts — but Agent A loads with the critique already in MemPalace. It refines only the flagged sections. It does not re-plan the entire project. The convergence gate's iteration_count continues from where it left off.
+  </div>
+</div>
+
+<div id="schema" class="hidden">
+  <div class="schema-note">
+    MemPalace is a SQLite database. Both agents interact exclusively through a Python accessor class — they never write raw SQL. The accessor handles spatial collision queries, version bumping, atomic commits, and reservation locking. The <code>coord_index</code> table is the structural core: it's what makes collision detection real rather than a prompt instruction the LLM can ignore.
+  </div>
+  <div style="margin-top:10px" class="schema-grid">
+    <div class="schema-table sch-m">
+      <div class="schema-hdr">projects</div>
+      <div class="schema-row"><span class="sf">project_id</span><span class="st">TEXT PK</span></div>
+      <div class="schema-row"><span class="sf">name</span><span class="st">TEXT</span></div>
+      <div class="schema-row"><span class="sf">mc_version</span><span class="st">TEXT</span><span class="sc">drives block ID validation in Agent B</span></div>
+      <div class="schema-row"><span class="sf">origin_xyz</span><span class="st">JSON</span></div>
+      <div class="schema-row"><span class="sf">status</span><span class="st">ENUM</span><span class="sc">planning · iterating · executing · done</span></div>
+      <div class="schema-row"><span class="sf">iteration_count</span><span class="st">INT</span><span class="sc">read by convergence gate</span></div>
+    </div>
+    <div class="schema-table sch-a">
+      <div class="schema-hdr">blueprints</div>
+      <div class="schema-row"><span class="sf">blueprint_id</span><span class="st">TEXT PK</span></div>
+      <div class="schema-row"><span class="sf">project_id</span><span class="st">FK</span></div>
+      <div class="schema-row"><span class="sf">version</span><span class="st">INT</span><span class="sc">bumped on each Agent A write</span></div>
+      <div class="schema-row"><span class="sf">module_name</span><span class="st">TEXT</span></div>
+      <div class="schema-row"><span class="sf">block_data</span><span class="st">JSON</span></div>
+      <div class="schema-row"><span class="sf">material_manifest</span><span class="st">JSON</span><span class="sc">preflight inventory check source</span></div>
+      <div class="schema-row"><span class="sf">quality_score</span><span class="st">REAL</span><span class="sc">gate picks highest when max cycles hit</span></div>
+    </div>
+    <div class="schema-table sch-b">
+      <div class="schema-hdr">critiques</div>
+      <div class="schema-row"><span class="sf">critique_id</span><span class="st">TEXT PK</span></div>
+      <div class="schema-row"><span class="sf">blueprint_id</span><span class="st">FK</span></div>
+      <div class="schema-row"><span class="sf">iteration</span><span class="st">INT</span></div>
+      <div class="schema-row"><span class="sf">delta_score</span><span class="st">REAL</span><span class="sc">% of blueprint changed — gate reads this</span></div>
+      <div class="schema-row"><span class="sf">issues_json</span><span class="st">JSON</span><span class="sc">line-item issues with priority field</span></div>
+      <div class="schema-row"><span class="sf">approval_flag</span><span class="st">BOOL</span><span class="sc">TRUE = zero issues found</span></div>
+    </div>
+    <div class="schema-table sch-d">
+      <div class="schema-hdr">coord_index — the collision layer</div>
+      <div class="schema-row"><span class="sf">x, y, z</span><span class="st">INT PK</span><span class="sc">composite primary key</span></div>
+      <div class="schema-row"><span class="sf">project_id</span><span class="st">FK</span></div>
+      <div class="schema-row"><span class="sf">module_name</span><span class="st">TEXT</span></div>
+      <div class="schema-row"><span class="sf">reserved_at</span><span class="st">TIMESTAMP</span><span class="sc">crash detection via age check</span></div>
+      <div class="schema-row"><span class="sf">status</span><span class="st">ENUM</span><span class="sc">reserved · placed · rolled_back</span></div>
+    </div>
+    <div class="schema-table sch-w">
+      <div class="schema-hdr">build_log — checkpoint layer</div>
+      <div class="schema-row"><span class="sf">log_id</span><span class="st">TEXT PK</span></div>
+      <div class="schema-row"><span class="sf">blueprint_id</span><span class="st">FK</span></div>
+      <div class="schema-row"><span class="sf">batch_index</span><span class="st">INT</span><span class="sc">resume skips completed batches</span></div>
+      <div class="schema-row"><span class="sf">blocks_placed</span><span class="st">INT</span></div>
+      <div class="schema-row"><span class="sf">checkpoint_state</span><span class="st">JSON</span><span class="sc">full state to resume from this point</span></div>
+      <div class="schema-row"><span class="sf">vision_score</span><span class="st">REAL</span><span class="sc">0–100; &lt; 80 triggers re-entry</span></div>
+    </div>
+    <div class="schema-table sch-m">
+      <div class="schema-hdr">vision_critiques — re-entry layer</div>
+      <div class="schema-row"><span class="sf">critique_id</span><span class="st">TEXT PK</span></div>
+      <div class="schema-row"><span class="sf">log_id</span><span class="st">FK</span></div>
+      <div class="schema-row"><span class="sf">vision_score</span><span class="st">REAL</span></div>
+      <div class="schema-row"><span class="sf">flagged_modules</span><span class="st">JSON</span><span class="sc">which modules scored low</span></div>
+      <div class="schema-row"><span class="sf">diff_detail</span><span class="st">JSON</span><span class="sc">expected vs actual block counts + symmetry</span></div>
+      <div class="schema-row"><span class="sf">resolved</span><span class="st">BOOL</span><span class="sc">set TRUE when Agent A uses this critique</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+function show(id,btn){
+  ['gaps','arch','schema'].forEach(t=>document.getElementById(t).classList.add('hidden'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.remove('hidden');
+  btn.classList.add('active');
+}
+</script>

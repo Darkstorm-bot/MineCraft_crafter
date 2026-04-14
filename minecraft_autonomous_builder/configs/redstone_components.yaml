@@ -1,0 +1,9 @@
+templates:
+  countdown_lights:
+    required_blocks:
+      - minecraft:redstone_lamp
+      - minecraft:redstone_torch
+  hidden_door:
+    required_blocks:
+      - minecraft:sticky_piston
+      - minecraft:redstone_wire

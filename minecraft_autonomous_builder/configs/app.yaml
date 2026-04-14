@@ -1,0 +1,10 @@
+app_env: development
+feature_flags:
+  enable_vision: true
+  enable_execution: true
+  strict_schema_validation: true
+  enable_trace_ids: true
+defaults:
+  max_iterations: 3
+  delta_approval_threshold: 5
+  vision_pass_threshold: 80

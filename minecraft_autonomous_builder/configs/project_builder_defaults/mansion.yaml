@@ -1,0 +1,3 @@
+project_type: mansion
+default_modules: [foundation_grid, room_graph, stair_cores, facade, roof, interiors]
+size: large

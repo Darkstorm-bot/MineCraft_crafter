@@ -1,0 +1,3 @@
+project_type: city
+default_modules: [road_network, zoning_blocks, utilities, towers, public_spaces]
+size: xlarge

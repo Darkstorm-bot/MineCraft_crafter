@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "required": ["blueprint_id", "project_id", "version", "module_name", "block_data", "material_manifest"],
+  "properties": {
+    "blueprint_id": {"type": "string"},
+    "project_id": {"type": "string"},
+    "version": {"type": "integer", "minimum": 1},
+    "module_name": {"type": "string"},
+    "bounds": {
+      "type": "object",
+      "required": ["min", "max"],
+      "properties": {
+        "min": {"type": "object", "properties": {"x": {"type": "integer"}, "y": {"type": "integer"}, "z": {"type": "integer"}}},
+        "max": {"type": "object", "properties": {"x": {"type": "integer"}, "y": {"type": "integer"}, "z": {"type": "integer"}}}
+      }
+    },
+    "block_data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["x", "y", "z", "block_id"],
+        "properties": {
+          "x": {"type": "integer"},
+          "y": {"type": "integer"},
+          "z": {"type": "integer"},
+          "block_id": {"type": "string"},
+          "state": {"type": "object"}
+        }
+      }
+    },
+    "material_manifest": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 1}
+    },
+    "quality_score": {"type": "number", "minimum": 0, "maximum": 100}
+  }
+}

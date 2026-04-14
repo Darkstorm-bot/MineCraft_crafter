@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "required": ["vision_score", "flagged_modules", "diff_detail"],
+  "properties": {
+    "vision_score": {"type": "number", "minimum": 0, "maximum": 100},
+    "flagged_modules": {"type": "array", "items": {"type": "string"}},
+    "diff_detail": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["module_name", "expected_blocks", "observed_blocks", "symmetry_score"],
+        "properties": {
+          "module_name": {"type": "string"},
+          "expected_blocks": {"type": "integer", "minimum": 0},
+          "observed_blocks": {"type": "integer", "minimum": 0},
+          "symmetry_score": {"type": "number", "minimum": 0, "maximum": 100}
+        }
+      }
+    }
+  }
+}

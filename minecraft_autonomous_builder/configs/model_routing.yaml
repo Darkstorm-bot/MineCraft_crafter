@@ -1,0 +1,9 @@
+architect:
+  model: ${ARCHITECT_MODEL}
+  temperature: 0.2
+engineer:
+  model: ${ENGINEER_MODEL}
+  temperature: 0.0
+vision:
+  model: ${OLLAMA_MODEL}
+  endpoint: ${OLLAMA_BASE_URL}

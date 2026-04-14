@@ -1,0 +1,25 @@
+services:
+  api:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: bash -lc "pip install -r requirements.txt && PYTHONPATH=src uvicorn api.app:app --host 0.0.0.0 --port 8080"
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+
+  bot:
+    image: node:20
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: bash -lc "npm install && npm run build"
+    env_file:
+      - .env
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"

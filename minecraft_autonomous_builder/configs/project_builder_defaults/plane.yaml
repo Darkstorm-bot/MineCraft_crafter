@@ -1,0 +1,3 @@
+project_type: plane
+default_modules: [fuselage, wings, tail_assembly, landing_gear, cockpit]
+size: medium
