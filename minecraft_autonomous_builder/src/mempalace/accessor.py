@@ -215,3 +215,29 @@ class MemPalaceAccessor:
                 )
                 row["diff_detail"] = JsonCodec.loads(row.pop("diff_detail_json"), default=[])
             return rows
+
+    def list_blueprints(self, project_id: str) -> list[dict[str, Any]]:
+        """List all blueprints for a project."""
+        with self.repo.transaction() as conn:
+            rows = conn.execute(
+                "SELECT * FROM blueprints WHERE project_id=? ORDER BY version DESC, module_name ASC",
+                (project_id,),
+            ).fetchall()
+            for row in rows:
+                row["bounds"] = JsonCodec.loads(row.pop("bounds_json"), default={})
+                row["block_data"] = JsonCodec.loads(row.pop("block_data_json"), default=[])
+                row["material_manifest"] = JsonCodec.loads(
+                    row.pop("material_manifest_json"), default={}
+                )
+            return rows
+
+    def get_build_log(self, project_id: str) -> list[dict[str, Any]]:
+        """Get all build log entries for a project."""
+        with self.repo.transaction() as conn:
+            rows = conn.execute(
+                "SELECT * FROM build_log WHERE project_id=? ORDER BY batch_index ASC",
+                (project_id,),
+            ).fetchall()
+            for row in rows:
+                row["checkpoint_state"] = JsonCodec.loads(row.pop("checkpoint_state_json"), default={})
+            return rows
