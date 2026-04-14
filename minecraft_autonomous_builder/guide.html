@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Autonomous Builder - Setup Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            color: #4ecca3;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #4ecca3;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4ecca3;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #ffd700;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #4ecca3;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        .step-number {
+            display: inline-block;
+            background: #4ecca3;
+            color: #1a1a2e;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        code {
+            background: #2d2d2d;
+            color: #4ecca3;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        ul, ol {
+            margin-left: 30px;
+            margin-top: 10px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .config-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .config-table th, .config-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .config-table th {
+            background: #4ecca3;
+            color: #1a1a2e;
+        }
+        .config-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .nav-menu a {
+            background: #4ecca3;
+            color: #1a1a2e;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .nav-menu a:hover {
+            background: #ffd700;
+            transform: translateY(-2px);
+        }
+        .tlauncher-section {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+        }
+        .tlauncher-section h2, .tlauncher-section h3 {
+            color: white;
+            border-bottom-color: rgba(255, 255, 255, 0.5);
+        }
+        .api-endpoint {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .method {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .method-post { background: #28a745; color: white; }
+        .method-get { background: #17a2b8; color: white; }
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .quick-link-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+        .quick-link-card:hover {
+            transform: scale(1.05);
+        }
+        .quick-link-card h3 {
+            color: white;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 Minecraft Autonomous Builder</h1>
+            <p>Complete Setup & Management Guide</p>
+        </header>
+
+        <nav class="nav-menu">
+            <a href="#prerequisites">Prerequisites</a>
+            <a href="#installation">Installation</a>
+            <a href="#minecraft-setup">Minecraft Setup</a>
+            <a href="#tlauncher">TLauncher Guide</a>
+            <a href="#llm-config">LLM Configuration</a>
+            <a href="#running">Running the System</a>
+            <a href="#api-guide">API Guide</a>
+            <a href="#troubleshooting">Troubleshooting</a>
+        </nav>
+
+        <!-- Prerequisites Section -->
+        <div class="section" id="prerequisites">
+            <h2>📋 Prerequisites</h2>
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Required Software:</strong>
+                <ul>
+                    <li><strong>Python 3.10+</strong> - For the backend API and orchestrator</li>
+                    <li><strong>Node.js 18+</strong> - For the Minecraft bot (mineflayer)</li>
+                    <li><strong>Git</strong> - For version control</li>
+                    <li><strong>Ollama</strong> or <strong>vLLM</strong> - For running local LLMs</li>
+                    <li><strong>Minecraft Java Edition</strong> (via TLauncher or official launcher)</li>
+                </ul>
+            </div>
+            
+            <div class="info">
+                <strong>💡 Note:</strong> This system uses a dual-agent architecture with an Architect (planning) and Engineer (execution) working together to build structures in Minecraft autonomously.
+            </div>
+        </div>
+
+        <!-- Installation Section -->
+        <div class="section" id="installation">
+            <h2>🔧 Installation</h2>
+            
+            <h3>Option A: Using start.bat (Windows - Recommended)</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Run the automated installer:</strong>
+                <pre>start.bat</pre>
+                <p>This script will automatically:</p>
+                <ul>
+                    <li>Check and install Python packages</li>
+                    <li>Create a virtual environment (.venv)</li>
+                    <li>Install Node.js dependencies</li>
+                    <li>Check if Ollama is running (start it if not)</li>
+                    <li>Provide connection instructions for Minecraft</li>
+                </ul>
+            </div>
+
+            <h3>Option B: Manual Installation</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Set up Python environment:</strong>
+                <pre>cd minecraft_autonomous_builder
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+# or
+source .venv/bin/activate  # Linux/Mac
+pip install -r requirements.txt</pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Install Node.js dependencies:</strong>
+                <pre>npm install</pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Initialize the database:</strong>
+                <pre>python scripts/init_db.py</pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>Copy environment file:</strong>
+                <pre>cp .env.example .env</pre>
+                <p>Edit <code>.env</code> with your configuration (see LLM Configuration section)</p>
+            </div>
+        </div>
+
+        <!-- Minecraft Connection Section -->
+        <div class="section" id="minecraft-setup">
+            <h2>🎮 Connecting to Minecraft</h2>
+            
+            <h3>Step 1: Start Your Minecraft World</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Open Minecraft and create/load a world:</strong>
+                <ul>
+                    <li>Game mode: <strong>Creative</strong> (recommended for building)</li>
+                    <li>Cheats: <strong>Enabled</strong></li>
+                    <li>Difficulty: <strong>Peaceful</strong> (optional, prevents interruptions)</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Open the world to LAN:</strong>
+                <ul>
+                    <li>Press <code>Esc</code> in-game</li>
+                    <li>Click <strong>"Open to LAN"</strong></li>
+                    <li>Select game mode (Creative recommended)</li>
+                    <li>Click <strong>"Start LAN World"</strong></li>
+                    <li>Note the port number shown (e.g., "Local game hosted on port 25565")</li>
+                </ul>
+            </div>
+
+            <h3>Step 2: Configure Bot Connection</h3>
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Update bot configuration:</strong>
+                <p>The bot connects via mineflayer. Create or edit <code>bot/config.json</code>:</p>
+                <pre>{
+  "host": "localhost",
+  "port": 25565,
+  "username": "BuilderBot",
+  "version": "1.20.4",
+  "auth": "offline"
+}</pre>
+            </div>
+
+            <h3>Step 3: Start the Bot</h3>
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>Run the Minecraft bot:</strong>
+                <pre>npm run build
+node dist/index.js</pre>
+                <p>The bot will connect to your Minecraft world and wait for commands from the API.</p>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ Important:</strong> Make sure your Minecraft username doesn't conflict with the bot's username. If you're playing as "Steve", name the bot "BuilderBot" or something different.
+            </div>
+        </div>
+
+        <!-- TLauncher Section -->
+        <div class="section tlauncher-section" id="tlauncher">
+            <h2>🚀 TLauncher Setup Guide</h2>
+            
+            <h3>What is TLauncher?</h3>
+            <p>TLauncher is a free Minecraft launcher that allows you to easily manage multiple Minecraft versions and modpacks. Here's how to set it up with the Autonomous Builder:</p>
+
+            <h3>Step 1: Install TLauncher</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Download TLauncher:</strong>
+                <ul>
+                    <li>Visit <code>tlauncher.org</code></li>
+                    <li>Download the version for your operating system</li>
+                    <li>Install and run TLauncher</li>
+                </ul>
+            </div>
+
+            <h3>Step 2: Select Minecraft Version</h3>
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Choose compatible version:</strong>
+                <ul>
+                    <li>In TLauncher, select version <strong>1.20.4</strong> (recommended)</li>
+                    <li>Or any version listed in <code>configs/minecraft_versions.yaml</code></li>
+                    <li>Click <strong>"Enter the Game"</strong></li>
+                </ul>
+            </div>
+
+            <h3>Step 3: Configure Multiplayer Settings</h3>
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Enable multiplayer in TLauncher:</strong>
+                <ul>
+                    <li>Go to <strong>Options</strong> → <strong>Multiplayer Settings</strong></li>
+                    <li>Ensure <strong>"Multiplayer Game"</strong> is enabled</li>
+                    <li>Set <strong>"Visible to LAN"</strong> to ON</li>
+                </ul>
+            </div>
+
+            <h3>Step 4: Open World to LAN</h3>
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>Start your world:</strong>
+                <ul>
+                    <li>Create a new world or load existing one</li>
+                    <li>Set game mode to <strong>Creative</strong></li>
+                    <li>Enable <strong>Cheats</strong></li>
+                    <li>Once in-game, press <code>Esc</code> → <strong>"Open to LAN"</strong></li>
+                    <li>Click <strong>"Start LAN World"</strong></li>
+                    <li>Note the port (usually 25565)</li>
+                </ul>
+            </div>
+
+            <h3>Step 5: Connect the Bot</h3>
+            <div class="step">
+                <span class="step-number">5</span>
+                <strong>Configure bot for TLauncher:</strong>
+                <p>TLauncher uses offline mode authentication. Update your bot config:</p>
+                <pre>{
+  "host": "localhost",
+  "port": 25565,
+  "username": "BuilderBot",
+  "version": "1.20.4",
+  "auth": "offline"
+}</pre>
+                <p>The <code>"auth": "offline"</code> setting is crucial for TLauncher compatibility!</p>
+            </div>
+
+            <div class="success">
+                <strong>✅ TLauncher Tip:</strong> TLauncher makes it easy to switch between Minecraft versions. If you encounter compatibility issues, try switching to version 1.20.4 which is well-tested with this builder system.
+            </div>
+        </div>
+
+        <!-- LLM Configuration Section -->
+        <div class="section" id="llm-config">
+            <h2>🤖 LLM Configuration</h2>
+            <p>The system supports multiple LLM backends. Configure them in your <code>.env</code> file or through the GUI.</p>
+
+            <h3>Available LLM Options</h3>
+            <table class="config-table">
+                <thead>
+                    <tr>
+                        <th>Provider</th>
+                        <th>Environment Variable</th>
+                        <th>Example Value</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Ollama (Local)</strong></td>
+                        <td><code>OLLAMA_MODEL</code></td>
+                        <td>llama3.2, mistral, codellama</td>
+                        <td>Free, runs locally</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ollama Base URL</strong></td>
+                        <td><code>OLLAMA_BASE_URL</code></td>
+                        <td>http://localhost:11434</td>
+                        <td>Default Ollama endpoint</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Architect Model</strong></td>
+                        <td><code>ARCHITECT_MODEL</code></td>
+                        <td>ollama/llama3.2</td>
+                        <td>For planning & design</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Engineer Model</strong></td>
+                        <td><code>ENGINEER_MODEL</code></td>
+                        <td>ollama/codellama</td>
+                        <td>For code generation</td>
+                    </tr>
+                    <tr>
+                        <td><strong>OpenAI</strong></td>
+                        <td><code>OPENAI_API_KEY</code></td>
+                        <td>sk-...</td>
+                        <td>Paid, high quality</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Anthropic</strong></td>
+                        <td><code>ANTHROPIC_API_KEY</code></td>
+                        <td>sk-ant-...</td>
+                        <td>Paid, excellent reasoning</td>
+                    </tr>
+                    <tr>
+                        <td><strong>vLLM</strong></td>
+                        <td><code>VLLM_BASE_URL</code></td>
+                        <td>http://localhost:8000/v1</td>
+                        <td>Fast local inference</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Configuring Ollama (Recommended for Local Use)</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Install Ollama:</strong>
+                <ul>
+                    <li>Visit <code>ollama.ai</code></li>
+                    <li>Download and install for your OS</li>
+                    <li>Ollama will run as a background service</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Pull required models:</strong>
+                <pre>ollama pull llama3.2
+ollama pull codellama
+ollama pull mistral</pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Verify Ollama is running:</strong>
+                <pre>ollama list
+curl http://localhost:11434/api/tags</pre>
+            </div>
+
+            <h3>Configuring vLLM (High-Performance Local)</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Install vLLM:</strong>
+                <pre>pip install vllm</pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Start vLLM server:</strong>
+                <pre>python -m vllm.entrypoints.api_server \
+  --model meta-llama/Llama-2-7b-chat-hf \
+  --host 0.0.0.0 \
+  --port 8000</pre>
+            </div>
+
+            <h3>Example .env File</h3>
+            <pre># LLM Configuration
+ARCHITECT_MODEL=ollama/llama3.2
+ENGINEER_MODEL=ollama/codellama
+OLLAMA_MODEL=mistral
+OLLAMA_BASE_URL=http://localhost:11434
+
+# Optional: Cloud providers
+# OPENAI_API_KEY=sk-your-key-here
+# ANTHROPIC_API_KEY=sk-ant-your-key-here
+
+# Application settings
+APP_ENV=development
+DATABASE_URL=sqlite:///data/mempalace.db</pre>
+        </div>
+
+        <!-- Running the System Section -->
+        <div class="section" id="running">
+            <h2>▶️ Running the System</h2>
+
+            <h3>Quick Start Commands</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Start the API server:</strong>
+                <pre>uvicorn src.api.app:app --reload --host 0.0.0.0 --port 8000</pre>
+                <p>The API will be available at <code>http://localhost:8000</code></p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Start the Minecraft bot:</strong>
+                <pre>npm run build
+node dist/index.js</pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Access the API documentation:</strong>
+                <p>Open your browser to <code>http://localhost:8000/docs</code> for interactive API documentation (Swagger UI)</p>
+            </div>
+
+            <h3>Using the Build Pipeline</h3>
+            <div class="api-endpoint">
+                <span class="method method-post">POST</span>
+                <code>/projects</code>
+                <p>Create a new building project</p>
+                <pre>{
+  "name": "My Castle",
+  "description": "A medieval castle with towers and walls",
+  "style": "medieval",
+  "size": "large"
+}</pre>
+            </div>
+
+            <div class="api-endpoint">
+                <span class="method method-post">POST</span>
+                <code>/projects/{project_id}/plan</code>
+                <p>Generate a building plan using the Architect agent</p>
+            </div>
+
+            <div class="api-endpoint">
+                <span class="method method-post">POST</span>
+                <code>/projects/{project_id}/execute</code>
+                <p>Execute the plan using the Engineer agent and Minecraft bot</p>
+            </div>
+
+            <div class="api-endpoint">
+                <span class="method method-post">POST</span>
+                <code>/projects/{project_id}/verify</code>
+                <p>Verify the built structure matches the plan (uses vision if enabled)</p>
+            </div>
+
+            <h3>Using Make Commands (Alternative)</h3>
+            <pre>make setup      # Install all dependencies
+make init-db    # Initialize database
+make test       # Run tests
+make run-api    # Start the API server
+make run-bot    # Start the Minecraft bot</pre>
+        </div>
+
+        <!-- API Guide Section -->
+        <div class="section" id="api-guide">
+            <h2>📡 API Reference</h2>
+            
+            <h3>Base URL</h3>
+            <p><code>http://localhost:8000</code></p>
+
+            <h3>Endpoints</h3>
+            
+            <div class="api-endpoint">
+                <span class="method method-get">GET</span>
+                <code>/health</code>
+                <p>Check API health status</p>
+            </div>
+
+            <div class="api-endpoint">
+                <span class="method method-post">POST</span>
+                <code>/projects</code>
+                <p>Create a new project</p>
+                <pre><strong>Request:</strong>
+{
+  "name": "string",
+  "description": "string",
+  "style": "string",
+  "size": "small|medium|large"
+}
+
+<strong>Response:</strong>
+{
+  "id": "uuid",
+  "name": "string",
+  "status": "created",
+  "created_at": "timestamp"
+}</pre>
+            </div>
+
+            <div class="api-endpoint">
+                <span class="method method-get">GET</span>
+                <code>/projects</code>
+                <p>List all projects</p>
+            </div>
+
+            <div class="api-endpoint">
+                <span class="method method-get">GET</span>
+                <code>/projects/{project_id}</code>
+                <p>Get project details</p>
+            </div>
+
+            <div class="api-endpoint">
+                <span class="method method-post">POST</span>
+                <code>/projects/{project_id}/plan</code>
+                <p>Generate building plan</p>
+                <pre><strong>Response:</strong>
+{
+  "plan_id": "uuid",
+  "blueprint": {...},
+  "materials": [...],
+  "steps": [...]
+}</pre>
+            </div>
+
+            <div class="api-endpoint">
+                <span class="method method-post">POST</span>
+                <code>/projects/{project_id}/execute</code>
+                <p>Execute building plan</p>
+            </div>
+
+            <div class="api-endpoint">
+                <span class="method method-post">POST</span>
+                <code>/projects/{project_id}/verify</code>
+                <p>Verify construction</p>
+            </div>
+
+            <div class="info">
+                <strong>💡 Tip:</strong> Visit <code>http://localhost:8000/docs</code> for interactive API documentation where you can test endpoints directly in your browser!
+            </div>
+        </div>
+
+        <!-- Troubleshooting Section -->
+        <div class="section" id="troubleshooting">
+            <h2>🔧 Troubleshooting</h2>
+
+            <h3>Common Issues</h3>
+
+            <h4>Bot Can't Connect to Minecraft</h4>
+            <ul>
+                <li>Ensure Minecraft world is open to LAN</li>
+                <li>Check the port number matches your config</li>
+                <li>Verify firewall isn't blocking the connection</li>
+                <li>Try using <code>"auth": "offline"</code> for TLauncher</li>
+                <li>Make sure bot username differs from your player username</li>
+            </ul>
+
+            <h4>Ollama Not Responding</h4>
+            <ul>
+                <li>Check if Ollama is running: <code>ollama list</code></li>
+                <li>Restart Ollama service</li>
+                <li>Verify <code>OLLAMA_BASE_URL</code> in .env</li>
+                <li>Ensure models are pulled: <code>ollama pull llama3.2</code></li>
+            </ul>
+
+            <h4>API Server Won't Start</h4>
+            <ul>
+                <li>Check if port 8000 is already in use</li>
+                <li>Verify all dependencies are installed: <code>pip install -r requirements.txt</code></li>
+                <li>Check database file exists in <code>data/</code> directory</li>
+                <li>Run <code>python scripts/init_db.py</code> to initialize</li>
+            </ul>
+
+            <h4>Build Quality Issues</h4>
+            <ul>
+                <li>Use more descriptive project descriptions</li>
+                <li>Try different LLM models for better results</li>
+                <li>Adjust temperature settings in <code>configs/model_routing.yaml</code></li>
+                <li>Enable vision verification for better accuracy</li>
+            </ul>
+
+            <h3>Logs and Debugging</h3>
+            <pre># Check API logs
+# The API logs to console when running
+
+# Check bot logs
+# Bot uses pino logger, outputs to console
+
+# Enable debug mode
+export APP_ENV=development</pre>
+
+            <div class="warning">
+                <strong>⚠️ Still having issues?</strong> Check the GitHub repository for known issues, or review the AGENT.md documentation for architectural details.
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="quick-links">
+            <a href="#minecraft-setup" class="quick-link-card">
+                <h3>🎮 Minecraft Setup</h3>
+                <p>Learn how to connect your Minecraft world</p>
+            </a>
+            <a href="#tlauncher" class="quick-link-card">
+                <h3>🚀 TLauncher Guide</h3>
+                <p>Special instructions for TLauncher users</p>
+            </a>
+            <a href="#llm-config" class="quick-link-card">
+                <h3>🤖 LLM Configuration</h3>
+                <p>Set up Ollama, vLLM, or cloud providers</p>
+            </a>
+            <a href="#api-guide" class="quick-link-card">
+                <h3>📡 API Reference</h3>
+                <p>Complete API documentation</p>
+            </a>
+        </div>
+
+        <footer>
+            <p>Minecraft Autonomous Builder - Built with ❤️ using AI agents</p>
+            <p>For more information, see AGENT.md and README.md</p>
+        </footer>
+    </div>
+</body>
+</html>

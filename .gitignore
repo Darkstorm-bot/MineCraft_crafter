@@ -1,20 +1,8 @@
-```gitignore
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.py~
-
-# Dependencies
-venv/
-.venv/
+```
+# Environment variables
 .env
 .env.local
 *.env.*
-
-# Database
-*.db
 
 # Logs
 *.log
@@ -28,25 +16,46 @@ venv/
 .DS_Store
 Thumbs.db
 
+# Dependencies
+node_modules/
+__pycache__/
+*.egg-info/
+.venv/
+venv/
+.env/
+
+# Build artifacts
+dist/
+build/
+target/
+*.pyc
+*.class
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
 # Coverage reports
-.coverage
-htmlcov/
 coverage/
+htmlcov/
+.coverage
 
 # IDE specific
 .vscode/
 .idea/
-*.sublime-project
-*.sublime-workspace
+*.iml
+*.ipr
+*.iws
 
-# Build artifacts
-build/
-dist/
-*.egg-info/
-target/
-out/
+# MyPy cache
+.mypy_cache/
+# Pytest cache
+.pytest_cache/
 
-# Compression files
+# Compressed files
 *.zip
 *.gz
 *.tar
