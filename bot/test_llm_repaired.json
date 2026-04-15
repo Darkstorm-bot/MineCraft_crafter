@@ -1,0 +1,22 @@
+{
+  "intent": "build",
+  "schematic": "chicken_schematic",
+  "target": {
+    "relative": "in front",
+    "distance": 2
+  },
+  "steps": [
+    {
+      "action": "chat",
+      "message": "Chicken built"
+    },
+    {
+      "action": "paste",
+      "command": "//schematic load chicken_schematic //paste"
+    },
+    {
+      "action": "wait",
+      "duration_ms": 2000
+    }
+  ]
+}

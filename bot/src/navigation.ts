@@ -1,6 +1,7 @@
 import { Vec3 } from 'vec3';
 import { Bot } from 'mineflayer';
-import { pathfinder, goals } from 'mineflayer-pathfinder';
+import * as pathfinderPkg from 'mineflayer-pathfinder';
+const { pathfinder, goals } = (pathfinderPkg as any).default ?? (pathfinderPkg as any);
 
 export interface NavigationAdapter {
   goto(x: number, y: number, z: number): Promise<void>;

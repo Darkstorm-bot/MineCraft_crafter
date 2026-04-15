@@ -10,6 +10,7 @@ export class MineflayerWorldStateAdapter implements WorldStateAdapter {
   private bot: Bot;
   private logger: { info: (msg: string, ...args: any[]) => void; warn: (msg: string, ...args: any[]) => void; error: (msg: string, ...args: any[]) => void };
   private tpsHistory: number[] = [];
+  private lastTickTime?: number;
 
   constructor(bot: Bot, logger: any) {
     this.bot = bot;
@@ -44,13 +45,13 @@ export class MineflayerWorldStateAdapter implements WorldStateAdapter {
     const now = Date.now();
 
     // Track tick timing
-    if (!this.bot._lastTick) {
-      this.bot._lastTick = now;
+    if (!this.lastTickTime) {
+      this.lastTickTime = now;
       return 20.0;
     }
 
-    const delta = now - this.bot._lastTick;
-    this.bot._lastTick = now;
+    const delta = now - this.lastTickTime;
+    this.lastTickTime = now;
 
     // Tick interval should be ~50ms for 20 TPS
     const estimatedTPS = Math.min(20.0, 1000 / delta);

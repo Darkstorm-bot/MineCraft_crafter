@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "mineflayer": "^4.23.0",
-    "mineflayer-baritone": "^2.0.0",
+    "@miner-org/mineflayer-baritone": "file:./bot/mineflayer-baritone",
     "mineflayer-pathfinder": "^2.4.5",
     "pino": "^9.4.0",
     "prismarine-block": "^1.18.0",

@@ -18,7 +18,7 @@ export class MineflayerInventoryAdapter implements InventoryAdapter {
     const items = this.bot.inventory.items();
     const matching = items.filter(i => i.name === itemName || i.displayName?.includes(itemName));
     const total = matching.reduce((sum, i) => sum + i.count, 0);
-    this.logger.debug(`Inventory count for ${itemName}: ${total}`);
+    this.logger.info(`Inventory count for ${itemName}: ${total}`);
     return total;
   }
 

@@ -1,0 +1,9 @@
+[
+  "tests/integration/test_pipeline.py::test_full_plan_execute_verify_offline",
+  "tests/unit/test_mempalace.py::test_build_log_upsert_and_resume",
+  "tests/unit/test_mempalace.py::test_collision_detection_non_overlap",
+  "tests/unit/test_mempalace.py::test_collision_detection_overlap",
+  "tests/unit/test_mempalace.py::test_stale_reservation_release",
+  "tests/unit/test_mempalace.py::test_transaction_rollback_no_partial_write",
+  "tests/unit/test_mempalace.py::test_vision_critique_flow"
+]
