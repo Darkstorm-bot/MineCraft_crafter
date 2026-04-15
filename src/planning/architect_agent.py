@@ -142,9 +142,9 @@ def _build_real_blocks(module_name: str, project_type: str, index: int, size_hin
 class ArchitectAgent:
     """LLM-powered architect agent with deterministic fallback."""
 
-    def __init__(self):
-        self.ollama_url = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
-        self.model = os.getenv("ARCHITECT_MODEL", "qwen3-14b")
+    def __init__(self, ollama_url: str | None = None, model: str | None = None):
+        self.ollama_url = ollama_url or os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
+        self.model = model or os.getenv("ARCHITECT_MODEL", "qwen3-14b")
         self._llm_available: bool | None = None
 
     def _check_llm(self) -> bool:
