@@ -1,6 +1,13 @@
 from __future__ import annotations
 
+import sys
 import uuid
+from pathlib import Path
+
+# Add src directory to Python path for proper imports
+src_dir = Path(__file__).parent.parent
+if str(src_dir) not in sys.path:
+    sys.path.insert(0, str(src_dir))
 
 from fastapi import FastAPI, Request
 

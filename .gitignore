@@ -1,4 +1,7 @@
 ```
+# Coverage reports
+.coverage
+
 # Python
 __pycache__/
 *.pyc
@@ -8,33 +11,26 @@ __pycache__/
 env/
 venv/
 .venv/
-.ENV
-.venv.bak
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
+.ENV/
+.env
+.env.local
+.env.*
+.python-version
+.pytest_cache/
+.mypy_cache/
 .coverage
-coverage/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+htmlcov/
+.coverage.*
 
 # Logs
 *.log
 
-# Temporary files
-*.tmp
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Build artifacts
-build/
-dist/
-*.egg-info/
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 ```
