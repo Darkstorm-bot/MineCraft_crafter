@@ -1,0 +1,3 @@
+project_type: rocket
+default_modules: [launch_pad, fuel_tanks, body_stage, nose_cone, boosters, command_bay]
+size: medium

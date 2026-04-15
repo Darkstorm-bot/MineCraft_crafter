@@ -1,0 +1,28 @@
+{
+  "$id": "project_intent.schema.json",
+  "type": "object",
+  "required": ["project_id", "project_type", "mc_version", "origin_xyz", "requirements"],
+  "properties": {
+    "project_id": {"type": "string"},
+    "project_type": {"enum": ["rocket", "mansion", "city", "plane", "weapon"]},
+    "mc_version": {"type": "string"},
+    "origin_xyz": {
+      "type": "object",
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": {"type": "integer"},
+        "y": {"type": "integer"},
+        "z": {"type": "integer"}
+      }
+    },
+    "requirements": {
+      "type": "object",
+      "properties": {
+        "size": {"type": "string"},
+        "style": {"type": "array", "items": {"type": "string"}},
+        "redstone_features": {"type": "array", "items": {"type": "string"}},
+        "max_iterations": {"type": "integer", "minimum": 1, "maximum": 10}
+      }
+    }
+  }
+}

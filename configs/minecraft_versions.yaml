@@ -1,0 +1,7 @@
+versions:
+  "1.20.4":
+    allowed_prefixes:
+      - minecraft:
+      - air
+    deny_blocks:
+      - minecraft:unknown

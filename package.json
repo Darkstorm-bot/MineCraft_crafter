@@ -1,0 +1,31 @@
+{
+  "name": "minecraft-autonomous-builder-bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p bot/tsconfig.json",
+    "lint": "eslint bot/src --ext .ts",
+    "format": "prettier --check .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "@typescript-eslint/eslint-plugin": "^8.10.0",
+    "@typescript-eslint/parser": "^8.10.0",
+    "eslint": "^9.12.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.2"
+  },
+  "dependencies": {
+    "mineflayer": "^4.23.0",
+    "mineflayer-baritone": "^2.0.0",
+    "mineflayer-pathfinder": "^2.4.5",
+    "pino": "^9.4.0",
+    "prismarine-block": "^1.18.0",
+    "prismarine-world": "^3.6.3",
+    "vec3": "^0.1.10",
+    "zod": "^3.23.8"
+  }
+}

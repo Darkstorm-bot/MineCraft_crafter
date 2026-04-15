@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "required": ["blueprint_id", "batch_index", "completed_batches", "current_origin", "inventory_snapshot"],
+  "properties": {
+    "blueprint_id": {"type": "string"},
+    "batch_index": {"type": "integer", "minimum": 0},
+    "completed_batches": {"type": "array", "items": {"type": "integer"}},
+    "current_origin": {"type": "object", "properties": {"x": {"type": "integer"}, "y": {"type": "integer"}, "z": {"type": "integer"}}},
+    "inventory_snapshot": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+    "retry_count": {"type": "integer", "minimum": 0},
+    "last_error": {"type": ["string", "null"]}
+  }
+}

@@ -11,6 +11,7 @@
 *.tmp
 *.swp
 *.swo
+.zip
 
 # OS generated files
 .DS_Store

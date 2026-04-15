@@ -1,0 +1,4 @@
+project_type: weapon
+default_modules: [shell, mechanism_chamber, trigger_logic, ammo_handling, safety_enclosure]
+size: small
+safety_required: true

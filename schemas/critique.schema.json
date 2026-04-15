@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "required": ["critique_id", "blueprint_id", "iteration", "delta_score", "issues", "approval_flag"],
+  "properties": {
+    "critique_id": {"type": "string"},
+    "blueprint_id": {"type": "string"},
+    "iteration": {"type": "integer", "minimum": 1},
+    "delta_score": {"type": "number", "minimum": 0, "maximum": 100},
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["issue_code", "priority", "message", "module_name"],
+        "properties": {
+          "issue_code": {"type": "string"},
+          "priority": {"enum": ["P0", "P1", "P2", "P3"]},
+          "message": {"type": "string"},
+          "module_name": {"type": "string"},
+          "suggested_fix": {"type": "string"}
+        }
+      }
+    },
+    "approval_flag": {"type": "boolean"}
+  }
+}
