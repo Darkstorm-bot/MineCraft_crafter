@@ -65,7 +65,6 @@ def _check_disk_space() -> dict:
     """Verify sufficient disk space for operations."""
     try:
         data_dir = Path(os.getenv("DATA_DIR", "./data"))
-        stat = data_dir.stat() if data_dir.exists() else Path(".").stat()
         # Use os.statvfs on Unix or fallback
         free_mb = 0
         try:

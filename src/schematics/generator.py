@@ -29,13 +29,13 @@ class BlockCompatibilityValidator:
         version_data = self.version_cfg["versions"].get(mc_version)
         if not version_data:
             raise ValueError(f"Unknown Minecraft version: {mc_version}")
-        
+
         allowed_raw = version_data.get("allowed_prefixes", [])
         # Ensure allowed_prefixes is a list of strings
         allowed = [str(p) for p in allowed_raw] if allowed_raw else []
         denied_raw = version_data.get("deny_blocks", [])
         denied = set(str(d) for d in denied_raw) if denied_raw else set()
-        
+
         for b in blocks:
             bid = self.normalize(b["block_id"])
             if bid in denied or not any(bid.startswith(p) for p in allowed):

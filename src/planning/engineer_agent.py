@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import uuid
 
 import httpx
 from jsonschema import validate as json_validate

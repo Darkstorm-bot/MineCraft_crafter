@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 
+import httpx
 import pytest
 
 # API tests
@@ -55,13 +56,13 @@ from planning.planner_io import ArchitectInput, ArchitectOutput, EngineerInput, 
 from planning.validators import validate_with_schema
 from planning.architect_agent import (
     _load_prompt, _build_architect_prompt, _parse_architect_response,
-    _validate_module_schema, _build_real_blocks, ArchitectAgent
+    _build_real_blocks, ArchitectAgent
 )
 from planning.engineer_agent import (
     _load_engineer_prompt, _build_engineer_prompt, _validate_block_ids,
     _validate_bounds, _validate_coord_conflicts, _validate_redstone_safety as engineer_validate_redstone,
     _compute_quality, _compute_delta, _parse_engineer_response,
-    _validate_critique_schema, EngineerAgent
+    EngineerAgent
 )
 
 # Vision tests
@@ -71,7 +72,7 @@ from vision.critique_writer import VisionCritiqueWriter
 from vision.screenshotter import Screenshotter
 
 # MemPalace tests
-from mempalace.accessor import MemPalaceAccessor, ProjectCreate
+from mempalace.accessor import MemPalaceAccessor
 from mempalace.repositories import Coord, JsonCodec
 from mempalace.spatial_index import SpatialIndexService, CollisionReport, ReservationResult
 
@@ -166,10 +167,11 @@ def test_check_disk_space_missing_dir():
 
 def test_check_disk_space_exception():
     """Test disk space check handles exceptions."""
-    with patch("pathlib.Path.stat") as mock_stat:
-        mock_stat.side_effect = Exception("Permission denied")
+    with patch("shutil.disk_usage") as mock_disk_usage:
+        mock_disk_usage.side_effect = Exception("Permission denied")
         result = _check_disk_space()
-        assert result["status"] == "error"
+        assert result["status"] == "ok"  # Inner exception is caught and returns -1
+        assert result["free_mb"] == -1
 
 
 def test_projects_get_accessor():
@@ -280,7 +282,7 @@ def test_intent_parser_missing_schema():
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
         json.dump({"type": "object"}, f)
         temp_path = f.name
-    
+
     try:
         parser = IntentParser(schema_path=temp_path)
         # Parser initialized successfully
@@ -404,13 +406,13 @@ def test_base_builder_abstract():
 def test_simple_builder_normalize_intent():
     """Test _SimpleBuilder normalize_intent adds requirements."""
     from project_builders.base_builder import _SimpleBuilder
-    
+
     class ConcreteBuilder(_SimpleBuilder):
         project_type = "test"
         def emit_required_modules(self): return []
         def emit_redstone_requirements(self): return []
         def emit_validation_invariants(self): return []
-    
+
     builder = ConcreteBuilder()
     intent = {"project_type": "test"}
     result = builder.normalize_intent(intent)
@@ -436,7 +438,7 @@ def test_preflight_terrain_check_success():
     """Test PreflightService terrain check succeeds."""
     service = PreflightService()
     modules = [{"module_name": "test", "bounds": {"min": {"x": 0, "y": 0, "z": 0}}}]
-    
+
     with patch("httpx.post") as mock_post:
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {"clear": True}
@@ -448,7 +450,7 @@ def test_preflight_terrain_check_failure():
     """Test PreflightService terrain check fails."""
     service = PreflightService()
     modules = [{"module_name": "test", "bounds": {"min": {"x": 0, "y": 0, "z": 0}}}]
-    
+
     with patch("httpx.post") as mock_post:
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {"clear": False}
@@ -460,7 +462,7 @@ def test_preflight_chunk_check_success():
     """Test PreflightService chunk check succeeds."""
     service = PreflightService()
     modules = [{"module_name": "test", "bounds": {"min": {"x": 0, "y": 0, "z": 0}}}]
-    
+
     with patch("httpx.post") as mock_post:
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {"loaded": True}
@@ -473,7 +475,7 @@ def test_preflight_run_inventory_fail():
     service = PreflightService()
     required = {"minecraft:stone": 100}
     inventory = {"minecraft:stone": 50}
-    
+
     result = service.run(required, inventory)
     assert result.ok is False
     assert "insufficient_inventory:minecraft:stone" in result.blockers
@@ -483,7 +485,7 @@ def test_preflight_run_terrain_fail():
     """Test PreflightService run fails on terrain check."""
     service = PreflightService()
     modules = [{"module_name": "test", "bounds": {"min": {"x": 0, "y": 0, "z": 0}}}]
-    
+
     with patch.object(service, '_check_terrain', return_value=False):
         result = service.run({}, {}, modules=modules)
         assert result.ok is False
@@ -494,7 +496,7 @@ def test_preflight_run_chunks_fail():
     """Test PreflightService run fails on chunk check."""
     service = PreflightService()
     modules = [{"module_name": "test", "bounds": {"min": {"x": 0, "y": 0, "z": 0}}}]
-    
+
     with patch.object(service, '_check_chunks', return_value=False):
         result = service.run({}, {}, modules=modules)
         assert result.ok is False
@@ -555,7 +557,7 @@ def test_batch_builder_send_command_fail():
     """Test BatchBuilderService send command failure."""
     mock_accessor = Mock()
     service = BatchBuilderService(mock_accessor, bot_api_url="http://invalid:3001")
-    
+
     with patch.object(service._http_client, 'post', side_effect=Exception("Connection refused")):
         result = service._send_command("//test", "module1")
         assert result["status"] == "dispatch_failed"
@@ -588,12 +590,12 @@ def test_batch_builder_execute_skip_completed():
         "checkpoint_state": {"completed_batches": [0]}
     }
     service = BatchBuilderService(mock_accessor)
-    
+
     modules = [{"module_name": "m1", "bounds": {"min": {"x": 0, "y": 0, "z": 0}}, "block_data": []}]
-    
+
     with patch.object(service, '_execute_batch') as mock_exec:
         mock_exec.return_value = BatchResult(0, 0, "ok")
-        results = service.execute("proj1", "bp1", modules, batch_size=1, resume=True)
+        service.execute("proj1", "bp1", modules, batch_size=1, resume=True)
         # Batch 0 should be skipped
         mock_exec.assert_not_called()
 
@@ -603,9 +605,9 @@ def test_batch_builder_execute_break_on_fail():
     mock_accessor = Mock()
     mock_accessor.get_latest_checkpoint.return_value = None
     service = BatchBuilderService(mock_accessor)
-    
+
     modules = [{"module_name": "m1", "bounds": {"min": {"x": 0, "y": 0, "z": 0}}, "block_data": []}]
-    
+
     with patch.object(service, '_execute_batch') as mock_exec:
         mock_exec.return_value = BatchResult(0, 0, "failed", error="test error")
         results = service.execute("proj1", "bp1", modules, batch_size=1)
@@ -617,17 +619,17 @@ def test_batch_builder_execute_batch_retry():
     """Test BatchBuilderService execute batch with retry."""
     mock_accessor = Mock()
     service = BatchBuilderService(mock_accessor)
-    
+
     module = {
         "module_name": "m1",
         "bounds": {"min": {"x": 0, "y": 0, "z": 0}},
         "block_data": [{"x": 0, "y": 0, "z": 0, "block_id": "stone"}]
     }
-    
+
     with patch.object(service, '_dispatch_with_retry') as mock_dispatch:
         mock_dispatch.return_value = {"status": "ok"}
         result = service._execute_batch("proj1", "bp1", 0, [module], set())
-        
+
         assert result.batch_index == 0
         assert result.blocks_placed == 1
         assert result.status == "ok"
@@ -637,17 +639,17 @@ def test_batch_builder_execute_batch_fail():
     """Test BatchBuilderService execute batch failure."""
     mock_accessor = Mock()
     service = BatchBuilderService(mock_accessor)
-    
+
     module = {
         "module_name": "m1",
         "bounds": {"min": {"x": 0, "y": 0, "z": 0}},
         "block_data": []
     }
-    
+
     with patch.object(service, '_dispatch_with_retry') as mock_dispatch:
         mock_dispatch.return_value = {"status": "failed", "error": "test"}
         result = service._execute_batch("proj1", "bp1", 0, [module], set())
-        
+
         assert result.status == "retry"
         assert result.retry_count == 1
 
@@ -656,18 +658,18 @@ def test_batch_builder_execute_batch_exception():
     """Test BatchBuilderService execute batch exception."""
     mock_accessor = Mock()
     service = BatchBuilderService(mock_accessor)
-    
+
     module = {
         "module_name": "m1",
         "bounds": {"min": {"x": 0, "y": 0, "z": 0}},
         "block_data": []
     }
-    
+
     with patch.object(service, '_dispatch_with_retry') as mock_dispatch:
         import httpx
         mock_dispatch.side_effect = httpx.HTTPError("Connection error")
         result = service._execute_batch("proj1", "bp1", 0, [module], set())
-        
+
         assert result.status == "failed"
         assert result.retry_count == 1
 
@@ -676,7 +678,7 @@ def test_batch_builder_dispatch_retry():
     """Test BatchBuilderService dispatch with retry."""
     mock_accessor = Mock()
     service = BatchBuilderService(mock_accessor)
-    
+
     with patch.object(service, '_send_command') as mock_send:
         mock_send.return_value = {"status": "ok"}
         result = service._dispatch_with_retry("//test", "m1")
@@ -687,10 +689,10 @@ def test_batch_builder_dispatch_retry_fail():
     """Test BatchBuilderService dispatch retry exhausts attempts."""
     mock_accessor = Mock()
     service = BatchBuilderService(mock_accessor)
-    
+
     with patch.object(service, '_send_command') as mock_send:
         mock_send.return_value = {"status": "dispatch_failed", "error": "fail"}
-        
+
         with pytest.raises(Exception):  # tenacity.RetryError
             service._dispatch_with_retry("//test", "m1")
 
@@ -707,15 +709,15 @@ def test_generate_placement_manifest():
             "bounds": {"min": {"x": 10, "y": 64, "z": 20}}
         }
     ]
-    
-    with tempfile.TemporaryDirectory() as tmpdir:
+
+    with tempfile.TemporaryDirectory():
         with patch("schematics.exporter.Path") as mock_path:
             mock_file = MagicMock()
             mock_path.return_value.__truediv__.return_value = mock_file
             mock_file.parent = MagicMock()
-            
+
             result = generate_placement_manifest("proj1", modules)
-            
+
             assert "proj1" in result or True  # Path constructed
 
 
@@ -723,7 +725,7 @@ def test_reconcile_materials_balanced():
     """Test material reconciliation with balanced materials."""
     modules = [{"material_manifest": {"stone": 100}}]
     expected = {"stone": 100}
-    
+
     result = reconcile_materials(modules, expected)
     assert result["is_balanced"] is True
     assert result["missing"] == {}
@@ -734,7 +736,7 @@ def test_reconcile_materials_missing():
     """Test material reconciliation with missing materials."""
     modules = [{"material_manifest": {"stone": 50}}]
     expected = {"stone": 100}
-    
+
     result = reconcile_materials(modules, expected)
     assert result["is_balanced"] is False
     assert result["missing"]["stone"] == 50
@@ -744,7 +746,7 @@ def test_reconcile_materials_excess():
     """Test material reconciliation with excess materials."""
     modules = [{"material_manifest": {"stone": 150}}]
     expected = {"stone": 100}
-    
+
     result = reconcile_materials(modules, expected)
     assert result["is_balanced"] is False
     assert result["excess"]["stone"] == 50
@@ -754,7 +756,7 @@ def test_reconcile_materials_unknown():
     """Test material reconciliation with unknown materials."""
     modules = [{"material_manifest": {"dirt": 50}}]
     expected = {"stone": 100}
-    
+
     result = reconcile_materials(modules, expected)
     assert "dirt" in result["excess"]
 
@@ -769,7 +771,7 @@ def test_generate_merged_schematic_fallback():
             ]
         }
     ]
-    
+
     with patch("schematics.exporter.mcschematic", None):
         with tempfile.TemporaryDirectory() as tmpdir:
             result = generate_merged_schematic("proj1", modules, schematic_dir=Path(tmpdir))
@@ -788,26 +790,26 @@ versions:
     deny_blocks:
       - minecraft:barrier
 """)
-        
+
         alias_path = Path(tmpdir) / "aliases.yaml"
         alias_path.write_text("""
 aliases:
   stone: minecraft:stone
 """)
-        
+
         validator = BlockCompatibilityValidator(
             versions_path=str(versions_path),
             alias_path=str(alias_path)
         )
-        
+
         # Test normalize
         assert validator.normalize("stone") == "minecraft:stone"
         assert validator.normalize("minecraft:dirt") == "minecraft:dirt"
-        
+
         # Test validate success
         blocks = [{"block_id": "minecraft:stone"}]
         validator.validate("1.20.4", blocks)  # Should not raise
-        
+
         # Test validate failure
         blocks = [{"block_id": "minecraft:barrier"}]
         with pytest.raises(ValueError):
@@ -817,19 +819,19 @@ aliases:
 def test_schematic_generator():
     """Test SchematicGenerator."""
     generator = SchematicGenerator()
-    
+
     module = {
         "module_name": "test",
         "version": 1,
         "block_data": [{"x": 0, "y": 64, "z": 0, "block_id": "minecraft:stone"}]
     }
-    
+
     # Patch mcschematic to be None to use fallback path
     with patch("schematics.generator.mcschematic", None):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir) / "schematics" / "proj1"
             out_dir.mkdir(parents=True, exist_ok=True)
-            
+
             with patch.object(generator.validator, 'validate') as mock_validate:
                 mock_validate.return_value = None
                 with patch("pathlib.Path") as mock_path_class:
@@ -839,7 +841,7 @@ def test_schematic_generator():
                     mock_file.parent.mkdir = MagicMock()
                     mock_path_class.return_value = mock_file
                     mock_path_class.return_value.__truediv__ = MagicMock(return_value=mock_file)
-                    
+
                     # Will use fallback since mcschematic is patched to None
                     result = generator.emit_module_schematic("proj1", module, "1.20.4")
                     assert result is not None
@@ -1047,7 +1049,7 @@ def test_generate_module_template():
         version=1,
         offset=(0, 64, 0)
     )
-    
+
     assert "blueprint_id" in module
     assert module["module_name"] == "test_mod"
     assert module["project_id"] == "proj1"
@@ -1132,11 +1134,11 @@ def test_validate_with_schema():
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
         json.dump({"type": "object", "properties": {"name": {"type": "string"}}}, f)
         temp_path = f.name
-    
+
     try:
         # Valid data
         validate_with_schema({"name": "test"}, temp_path)
-        
+
         # Invalid data should raise
         with pytest.raises(Exception):
             validate_with_schema({"name": 123}, temp_path)
@@ -1218,16 +1220,6 @@ def test_parse_architect_response_markdown_no_lang():
 def test_validate_module_schema():
     """Test _validate_module_schema."""
     # This requires the actual schema file, so we'll test with a mock
-    module = {
-        "blueprint_id": "test",
-        "project_id": "p1",
-        "version": 1,
-        "module_name": "test",
-        "bounds": {"min": {"x": 0, "y": 0, "z": 0}, "max": {"x": 1, "y": 1, "z": 1}},
-        "block_data": [],
-        "material_manifest": {},
-        "quality_score": 80
-    }
     # Would raise if schema validation fails
     # _validate_module_schema(module)
 
@@ -1299,13 +1291,13 @@ def test_architect_agent_run_llm_unavailable():
     """Test ArchitectAgent run uses fallback when LLM unavailable."""
     agent = ArchitectAgent()
     agent._llm_available = False
-    
+
     payload = ArchitectInput(
         project={"project_id": "p1", "project_type": "rocket", "mc_version": "1.20.4", "origin_xyz": {}, "requirements": {"size": "small"}}
     )
-    
+
     result = agent.run(payload, ["launch_pad"], 1)
-    
+
     assert len(result.blueprint_modules) > 0
     assert result.change_summary.startswith("Deterministic fallback")
 
@@ -1313,11 +1305,11 @@ def test_architect_agent_run_llm_unavailable():
 def test_architect_agent_call_llm():
     """Test ArchitectAgent _call_llm method."""
     agent = ArchitectAgent()
-    
+
     with patch("httpx.post") as mock_post:
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {"response": "test response"}
-        
+
         result = agent._call_llm("test prompt")
         assert result == "test response"
 
@@ -1325,10 +1317,10 @@ def test_architect_agent_call_llm():
 def test_architect_agent_call_llm_error():
     """Test ArchitectAgent _call_llm handles errors."""
     agent = ArchitectAgent()
-    
+
     with patch("httpx.post") as mock_post:
         mock_post.return_value.raise_for_status.side_effect = Exception("HTTP error")
-        
+
         with pytest.raises(Exception):
             agent._call_llm("test prompt")
 
@@ -1546,12 +1538,6 @@ def test_parse_engineer_response_markdown():
 
 def test_validate_critique_schema():
     """Test _validate_critique_schema."""
-    output = {
-        "delta_score": 10.0,
-        "issues": [],
-        "approval_flag": True,
-        "quality_score": 90.0
-    }
     # Would raise if schema validation fails
     # _validate_critique_schema(output)
 
@@ -1567,16 +1553,16 @@ def test_engineer_agent_run_empty_modules():
     """Test EngineerAgent run with empty modules."""
     agent = EngineerAgent()
     agent._llm_available = False
-    
+
     payload = EngineerInput(
         project={"project_id": "p1"},
         blueprint_modules=[],
         material_manifest={},
         coord_index_snapshot={}
     )
-    
+
     result = agent.run(payload)
-    
+
     assert result.quality_score < 100.0
     assert any(i["issue_code"] == "EMPTY_BLUEPRINT" for i in result.issues)
 
@@ -1585,7 +1571,7 @@ def test_engineer_agent_run_with_validation():
     """Test EngineerAgent run performs validations."""
     agent = EngineerAgent()
     agent._llm_available = False
-    
+
     payload = EngineerInput(
         project={"project_id": "p1"},
         blueprint_modules=[{
@@ -1597,9 +1583,9 @@ def test_engineer_agent_run_with_validation():
         material_manifest={},
         coord_index_snapshot={}
     )
-    
+
     result = agent.run(payload)
-    
+
     assert result.quality_score <= 100.0
     assert isinstance(result.approval_flag, bool)
 
@@ -1607,11 +1593,11 @@ def test_engineer_agent_run_with_validation():
 def test_engineer_agent_call_llm():
     """Test EngineerAgent _call_llm method."""
     agent = EngineerAgent()
-    
+
     with patch("httpx.post") as mock_post:
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {"response": "test"}
-        
+
         result = agent._call_llm("test")
         assert result == "test"
 
@@ -1643,12 +1629,12 @@ def test_llava_client_score_missing_image():
 def test_llava_client_score_success():
     """Test LLaVAClient score succeeds."""
     client = LLaVAClient()
-    
+
     with patch.object(client, '_encode_image', return_value="base64data"):
         with patch("httpx.post") as mock_post:
             mock_post.return_value.status_code = 200
             mock_post.return_value.json.return_value = {"response": '{"score": 90}'}
-            
+
             result = client.score("test", "image.png")
             assert "score" in result or True
 
@@ -1656,11 +1642,11 @@ def test_llava_client_score_success():
 def test_llava_client_score_http_error():
     """Test LLaVAClient score handles HTTP error."""
     client = LLaVAClient()
-    
+
     with patch.object(client, '_encode_image', return_value="base64data"):
         with patch("httpx.post") as mock_post:
             mock_post.side_effect = httpx.HTTPError("HTTP error")
-            
+
             result = client.score("test", "image.png")
             parsed = json.loads(result)
             assert parsed["vision_score"] == 0
@@ -1669,31 +1655,31 @@ def test_llava_client_score_http_error():
 def test_llava_client_is_available_true():
     """Test LLaVAClient is_available returns True."""
     client = LLaVAClient()
-    
+
     with patch("httpx.get") as mock_get:
         mock_get.return_value.status_code = 200
         mock_get.return_value.json.return_value = {"models": [{"name": "llava:latest"}]}
-        
+
         assert client.is_available() is True
 
 
 def test_llava_client_is_available_false():
     """Test LLaVAClient is_available returns False."""
     client = LLaVAClient()
-    
+
     with patch("httpx.get") as mock_get:
         mock_get.return_value.status_code = 503
-        
+
         assert client.is_available() is False
 
 
 def test_llava_client_is_available_exception():
     """Test LLaVAClient is_available handles exception."""
     client = LLaVAClient()
-    
+
     with patch("httpx.get") as mock_get:
         mock_get.side_effect = Exception("Connection error")
-        
+
         assert client.is_available() is False
 
 
@@ -1741,10 +1727,10 @@ def test_vision_critique_writer():
     """Test VisionCritiqueWriter."""
     mock_accessor = Mock()
     mock_accessor.insert_vision_critique.return_value = {"critique_id": "c1"}
-    
+
     writer = VisionCritiqueWriter(mock_accessor)
     result = writer.write("p1", "bp1", 1, {"vision_score": 90, "flagged_modules": [], "diff_detail": []})
-    
+
     assert result["critique_id"] == "c1"
     mock_accessor.insert_vision_critique.assert_called_once()
 
@@ -1758,11 +1744,11 @@ def test_screenshotter_init():
 def test_screenshotter_request_screenshot_success():
     """Test Screenshotter request screenshot succeeds."""
     screenshotter = Screenshotter()
-    
+
     with patch("httpx.post") as mock_post:
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {"screenshot_path": "/path/to/img.png"}
-        
+
         result = screenshotter._request_screenshot("p1", "m1", "build")
         assert result == "/path/to/img.png"
 
@@ -1770,10 +1756,10 @@ def test_screenshotter_request_screenshot_success():
 def test_screenshotter_request_screenshot_fail():
     """Test Screenshotter request screenshot fails."""
     screenshotter = Screenshotter()
-    
+
     with patch("httpx.post") as mock_post:
         mock_post.side_effect = Exception("Connection error")
-        
+
         result = screenshotter._request_screenshot("p1", "m1", "build")
         assert result is None
 
@@ -1781,7 +1767,7 @@ def test_screenshotter_request_screenshot_fail():
 def test_screenshotter_generate_synthetic():
     """Test Screenshotter generate synthetic image."""
     screenshotter = Screenshotter()
-    
+
     with tempfile.TemporaryDirectory() as tmpdir:
         with patch.dict(os.environ, {"SCREENSHOT_DIR": tmpdir}):
             result = screenshotter._generate_synthetic("p1", "m1", "build")
@@ -1791,7 +1777,7 @@ def test_screenshotter_generate_synthetic():
 def test_screenshotter_capture_module_real():
     """Test Screenshotter capture_module uses real screenshot."""
     screenshotter = Screenshotter()
-    
+
     with patch.object(screenshotter, '_request_screenshot', return_value="/real.png"):
         result = screenshotter.capture_module("p1", "m1", "build")
         assert result == "/real.png"
@@ -1800,7 +1786,7 @@ def test_screenshotter_capture_module_real():
 def test_screenshotter_capture_module_fallback():
     """Test Screenshotter capture_module falls back to synthetic."""
     screenshotter = Screenshotter()
-    
+
     with patch.object(screenshotter, '_request_screenshot', return_value=None):
         with tempfile.TemporaryDirectory() as tmpdir:
             with patch.dict(os.environ, {"SCREENSHOT_DIR": tmpdir}):
@@ -1823,7 +1809,7 @@ def test_json_codec():
     data = {"key": "value", "number": 42}
     serialized = JsonCodec.dumps(data)
     assert isinstance(serialized, str)
-    
+
     deserialized = JsonCodec.loads(serialized)
     assert deserialized == data
 
