@@ -13,6 +13,9 @@ echo   Minecraft Autonomous Builder - Setup
 echo ============================================
 echo.
 
+:: Get the directory where this script is located
+cd /d "%~dp0"
+
 :: Check if running as administrator
 net session >nul 2>&1
 if %errorLevel% == 0 (
@@ -23,7 +26,7 @@ if %errorLevel% == 0 (
 )
 
 :: Step 1: Check Python installation
-echo [STEP 1/8] Checking Python installation...
+echo [STEP 1/9] Checking Python installation...
 python --version >nul 2>&1
 if %errorLevel% neq 0 (
     echo [ERROR] Python is not installed or not in PATH!
@@ -37,7 +40,7 @@ echo [OK] Python found: %PYTHON_VERSION%
 echo.
 
 :: Step 2: Create virtual environment
-echo [STEP 2/8] Setting up Python virtual environment...
+echo [STEP 2/9] Setting up Python virtual environment...
 if not exist ".venv" (
     echo Creating virtual environment...
     python -m venv .venv
@@ -53,7 +56,7 @@ if not exist ".venv" (
 echo.
 
 :: Step 3: Activate virtual environment and install Python packages
-echo [STEP 3/8] Installing Python dependencies...
+echo [STEP 3/9] Installing Python dependencies...
 call .venv\Scripts\activate.bat
 if %errorLevel% neq 0 (
     echo [ERROR] Failed to activate virtual environment!
@@ -67,11 +70,17 @@ if %errorLevel% neq 0 (
     echo [WARNING] Some packages may have failed to install. Trying again with verbose output...
     pip install -r requirements.txt
 )
+echo Installing project in editable mode...
+pip install -e . --quiet
+if %errorLevel% neq 0 (
+    echo [WARNING] Failed to install project in editable mode. Trying again with verbose output...
+    pip install -e .
+)
 echo [OK] Python dependencies installed
 echo.
 
 :: Step 4: Check Node.js installation
-echo [STEP 4/8] Checking Node.js installation...
+echo [STEP 4/9] Checking Node.js installation...
 node --version >nul 2>&1
 if %errorLevel% neq 0 (
     echo [ERROR] Node.js is not installed or not in PATH!
@@ -83,8 +92,9 @@ for /f "tokens=*" %%i in ('node --version') do set NODE_VERSION=%%i
 echo [OK] Node.js found: %NODE_VERSION%
 echo.
 
-:: Step 5: Install Node.js dependencies
-echo [STEP 5/8] Installing Node.js dependencies...
+:: Step 5: Install Node.js dependencies for bot
+echo [STEP 5/9] Installing Node.js dependencies...
+cd bot
 if not exist "node_modules" (
     echo Running npm install...
     call npm install
@@ -99,20 +109,23 @@ if not exist "node_modules" (
     echo Checking for updates...
     call npm install
 )
+cd ..
 echo.
 
 :: Step 6: Build TypeScript bot
-echo [STEP 6/8] Building Minecraft bot (TypeScript)...
+echo [STEP 6/9] Building Minecraft bot (TypeScript)...
+cd bot
 call npm run build
 if %errorLevel% neq 0 (
     echo [WARNING] Bot build had some issues, but continuing...
 ) else (
     echo [OK] Bot built successfully
 )
+cd ..
 echo.
 
 :: Step 7: Initialize database
-echo [STEP 7/8] Initializing database...
+echo [STEP 7/9] Initializing database...
 if not exist "data" (
     mkdir data
     echo [INFO] Created data directory
@@ -126,7 +139,7 @@ if %errorLevel% neq 0 (
 echo.
 
 :: Step 8: Check and start Ollama
-echo [STEP 8/8] Checking Ollama service...
+echo [STEP 8/9] Checking Ollama service...
 tasklist /FI "IMAGENAME eq ollama.exe" 2>nul | find /I "ollama.exe" >nul
 if %errorLevel% neq 0 (
     echo [INFO] Ollama is not running. Attempting to start...
@@ -203,6 +216,8 @@ if not exist ".env" (
         echo # Application settings
         echo APP_ENV=development
         echo DATABASE_URL=sqlite:///data/mempalace.db
+        echo BOT_API_URL=http://localhost:3001
+        echo PYTHONPATH=.
     ) > .env
     echo [OK] .env file created
 ) else (
@@ -238,6 +253,7 @@ echo 3. Start the API server:
 echo    uvicorn src.api.app:app --reload --host 0.0.0.0 --port 8000
 echo.
 echo 4. Start the Minecraft bot:
+echo    cd bot
 echo    npm run build
 echo    node dist/index.js
 echo.
@@ -247,18 +263,33 @@ echo ============================================
 echo.
 
 :: Ask if user wants to start services now
-set /p START_SERVICES="Would you like to start the API server now? (Y/N): "
+set /p START_SERVICES="Would you like to start the API server and bot now? (Y/N): "
 if /i "!START_SERVICES!"=="Y" (
     echo.
-    echo Starting API server...
+    echo Starting API server and Minecraft bot...
     echo The API will be available at http://localhost:8000
-    echo Press Ctrl+C to stop the server
+    echo The bot will connect to your Minecraft server
+    echo Press Ctrl+C to stop the servers
     echo.
-    uvicorn src.api.app:app --reload --host 0.0.0.0 --port 8000
+    
+    :: Start API server in background
+    start "API Server" cmd /k "uvicorn src.api.app:app --reload --host 0.0.0.0 --port 8000"
+    
+    :: Wait a moment for API to start
+    timeout /t 3 /nobreak >nul
+    
+    :: Start Minecraft bot
+    cd bot
+    start "Minecraft Bot" cmd /k "node dist/index.js"
+    cd ..
+    
+    echo.
+    echo Both services started in separate windows!
 ) else (
     echo.
-    echo You can start the API server later with:
-    echo   uvicorn src.api.app:app --reload --host 0.0.0.0 --port 8000
+    echo You can start the services later with:
+    echo   API Server: uvicorn src.api.app:app --reload --host 0.0.0.0 --port 8000
+    echo   Minecraft Bot: cd bot ^&^& npm run build ^&^& node dist/index.js
     echo.
 )
 
