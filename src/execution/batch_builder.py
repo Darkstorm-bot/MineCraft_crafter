@@ -50,6 +50,9 @@ class BatchBuilderService:
         except httpx.HTTPError as exc:
             logger.warning("Bot API command dispatch failed: %s", exc)
             return {"status": "dispatch_failed", "error": str(exc)}
+        except Exception as exc:
+            logger.warning("Bot API command dispatch failed: %s", exc)
+            return {"status": "dispatch_failed", "error": str(exc)}
 
     def _get_completed_batches(self, project_id: str) -> set[int]:
         """Retrieve set of already-completed batch indices for a project."""
