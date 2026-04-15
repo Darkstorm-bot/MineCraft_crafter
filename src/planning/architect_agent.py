@@ -190,8 +190,8 @@ class ArchitectAgent:
                     for bid, count in mod.get("material_manifest", {}).items():
                         material_counter[bid] += count
 
-                return ArchitectOutput
-(                    blueprint_modules=blueprint_modules,
+                return ArchitectOutput(
+                    blueprint_modules=blueprint_modules,
                     material_manifest=dict(material_counter),
                     coord_proposals=[
                         {"x": b["x"], "y": b["y"], "z": b["z"]}
